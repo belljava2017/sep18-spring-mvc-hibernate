@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -13,14 +14,21 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.view.JstlView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
+@PropertySource(value="classpath:application.properties")
 @ComponentScan(basePackages = "com.bellinfo.advanced.springmvc")
 @EnableWebMvc
 @EnableTransactionManagement
 public class ApplicationConfig {
+
+      private static final String HIB_DIALECT = "hibernate.dialect";
+
+     @Resource
+     Environment environment;
 
      @Bean
      public UrlBasedViewResolver urlBasedViewResolver(){
@@ -34,10 +42,10 @@ public class ApplicationConfig {
      @Bean
      public DataSource dataSource(){
          DriverManagerDataSource dmds = new DriverManagerDataSource();
-         dmds.setDriverClassName("org.postgresql.Driver");
-         dmds.setUrl("jdbc:postgresql://127.0.0.1:5433/belljavasep");
-         dmds.setUsername("postgres");
-         dmds.setPassword("abcd12345");
+         dmds.setDriverClassName(environment.getProperty("pg.driver"));
+         dmds.setUrl(environment.getProperty("pg.url"));
+         dmds.setUsername(environment.getProperty("pg.username"));
+         dmds.setPassword(environment.getProperty("pg.password"));
          return dmds;
      }
 
@@ -46,19 +54,20 @@ public class ApplicationConfig {
      public LocalSessionFactoryBean sessionFactory(){
 
          Properties hibProp = new Properties();
-         hibProp.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-         hibProp.put("hibernate.hbm2ddl.auto", "update");
-         hibProp.put("hibernate.show_sql", "true");
-         hibProp.put("hibernate.default_schema", "learning");
+         hibProp.put(HIB_DIALECT, environment.getProperty("hib.dialect"));
+         hibProp.put("hibernate.hbm2ddl.auto", environment.getProperty("hib.ddl.strategy"));
+         hibProp.put("hibernate.show_sql", environment.getProperty("hib.show.queries"));
+         hibProp.put("hibernate.default_schema", environment.getProperty("pg.schema"));
 
          LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
          sessionFactory.setDataSource(dataSource());
          sessionFactory.setHibernateProperties(hibProp);
-         sessionFactory.setPackagesToScan("com.bellinfo.advanced.springmvc.model");
+         sessionFactory.setPackagesToScan(environment.getProperty("hib.entity.scan"));
          return sessionFactory;
      }
 
-     @Bean
+
+    @Bean
      public HibernateTransactionManager hibernateTransactionManager(){
          HibernateTransactionManager hibTxMgr = new HibernateTransactionManager();
          hibTxMgr.setSessionFactory(sessionFactory().getObject());

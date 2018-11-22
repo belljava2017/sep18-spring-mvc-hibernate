@@ -1,6 +1,11 @@
 package com.bellinfo.advanced.springmvc.model;
 
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.lang.NonNull;
+
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 
 @Entity
 public class Student {
@@ -9,6 +14,10 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
+
+    @Min(value = 5)
+    @NotEmpty
+    @Email()
     @Column
     String name;
 

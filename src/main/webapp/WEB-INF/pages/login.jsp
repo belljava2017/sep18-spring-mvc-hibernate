@@ -27,6 +27,8 @@
         <div class="form-group">
             <label for="name">Name:</label>
             <input type="name" class="form-control" id="name" placeholder="Enter name" name="name">
+            <div><f:errors path="name" cssStyle="color:red"/></div>
+
         </div>
         <button type="submit" class="btn btn-default">Submit</button>
     </f:form>
